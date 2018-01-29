@@ -33,11 +33,11 @@ public class SysAttachmentServiceImpl extends BaseServiceImpl<SysAttachment> imp
         sysAttachment.setSize(file.getSize()+"");
         sysAttachment.setType(type);
         sysAttachment.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        String path = "upload/"+ CommonUtils.getUUID()+"."+file.getOriginalFilename().replaceAll(".*?\\.","");
+        String path = downPath()+"upload/"+ CommonUtils.getUUID()+"."+file.getOriginalFilename().replaceAll(".*?\\.","");
         sysAttachment.setPath(path);
         try {
             File outfile = new File(path);
-            if (outfile.exists()){
+            if (!outfile.exists()){
                 outfile.mkdirs();
                 outfile.delete();
             }
