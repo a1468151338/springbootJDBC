@@ -1,27 +1,20 @@
 package zkl.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import zkl.common.service.BaseServiceImpl;
 import zkl.common.util.CommonUtils;
 import zkl.dao.SysAttachmentDao;
-import zkl.dao.SysRoleDao;
-import zkl.dao.SysUserDao;
 import zkl.entity.SysAttachment;
-import zkl.entity.SysUser;
-import zkl.enums.UploadType;
 import zkl.service.SysAttachmentService;
-import zkl.service.SysUserService;
 
 import javax.servlet.MultipartConfigElement;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/12/27.
@@ -34,11 +27,11 @@ public class SysAttachmentServiceImpl extends BaseServiceImpl<SysAttachment> imp
     @Autowired
     private MultipartConfigElement config;
 
-    public SysAttachment doSavePath(MultipartFile file) throws NoSuchFieldException, SQLException {
+    public SysAttachment doSavePath(MultipartFile file,String type) throws NoSuchFieldException, SQLException {
         SysAttachment sysAttachment = new SysAttachment();
         sysAttachment.setName(file.getOriginalFilename());
         sysAttachment.setSize(file.getSize()+"");
-        sysAttachment.setType(UploadType.Img.getName());
+        sysAttachment.setType(type);
         sysAttachment.setCreateTime(new Timestamp(System.currentTimeMillis()));
         String path = "upload/"+ CommonUtils.getUUID()+"."+file.getOriginalFilename().replaceAll(".*?\\.","");
         sysAttachment.setPath(path);
@@ -63,13 +56,15 @@ public class SysAttachmentServiceImpl extends BaseServiceImpl<SysAttachment> imp
     }
 
     @Override
-    public Boolean doDeleteFile(Integer id) throws IllegalAccessException {
-        try {
-            SysAttachment sysAttachment = sysAttachmentDao.findById(id);
-            sysAttachmentDao.deleteById(id);
-            File file = new File(downPath()+sysAttachment.getPath());
-            if(!file.exists()){
-                file.delete();
+    public Boolean doDeleteFile(Object ids) throws IllegalAccessException {
+        try{
+            List<SysAttachment> attachmentList = sysAttachmentDao.findByFilter("id,path"," where id in("+ids+")");
+            for(SysAttachment sysAttachment : attachmentList){
+                sysAttachmentDao.deleteById(sysAttachment.getId());
+                File file = new File(downPath()+sysAttachment.getPath());
+                if(file.exists()){
+                    file.delete();
+                }
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -77,5 +72,4 @@ public class SysAttachmentServiceImpl extends BaseServiceImpl<SysAttachment> imp
         }
         return true;
     }
-
 }

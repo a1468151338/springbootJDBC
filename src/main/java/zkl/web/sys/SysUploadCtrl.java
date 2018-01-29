@@ -5,10 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 import zkl.common.util.CommonUtils;
 import zkl.entity.SysAttachment;
 import zkl.enums.UploadType;
@@ -19,8 +17,6 @@ import zkl.web.BaseCtrl;
 import java.io.*;
 import java.net.URLEncoder;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.List;
 
 /**
  * Created by Administrator on 2018/1/21.
@@ -36,7 +32,28 @@ public class SysUploadCtrl extends BaseCtrl{
     public String uploadImg(MultipartFile file){
         //List<MultipartFile> fileList = ((MultipartHttpServletRequest)request).getFiles("file");
         try {
-            sysAttachmentService.doSavePath(file);
+            System.out.println(file.getName());
+            if(fileType(file,UploadType.Img.getName())){
+                sysAttachmentService.doSavePath(file,UploadType.Img.getName());
+            }else{
+                return ResponseTem.errorTem("上传格式错误").toString();
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ResponseTem.successTem();
+    }
+
+    @RequestMapping("uploadAttach")
+    public String uploadAttach(MultipartFile file){
+        try {
+            if(fileType(file,UploadType.Attach.getName())){
+                sysAttachmentService.doSavePath(file,UploadType.Attach.getName());
+            }else{
+                return ResponseTem.errorTem("上传格式错误").toString();
+            }
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -49,7 +66,7 @@ public class SysUploadCtrl extends BaseCtrl{
     public String delete(@RequestBody JSONObject jsonObject){
         try{
             Object id = jsonObject.get("id");
-            sysAttachmentService.doDeleteFile(new Integer(id.toString()));
+            sysAttachmentService.doDeleteFile(id);
         }catch (Exception e){
             e.printStackTrace();
             return ResponseTem.errorTem();
@@ -61,6 +78,7 @@ public class SysUploadCtrl extends BaseCtrl{
     public String findUserList(@RequestBody JSONObject page){
         Integer pageNum;
         Integer pageSize;
+        String type  = CommonUtils.filterStr(page.get("type").toString());
         String searchKey = CommonUtils.filterStr(page.get("searchKey")==null?"":page.get("searchKey").toString().trim());
         try{
             pageNum = new Integer(page.get("pageNum").toString());
@@ -70,19 +88,21 @@ public class SysUploadCtrl extends BaseCtrl{
             pageSize = 12;
         }
         pageNum = (pageNum<1)?1:pageNum;
-        pageSize = (pageSize<1||pageSize>500)?12:pageSize;
+        pageSize = (pageSize<1||pageSize>48)?12:pageSize;
         try {
-            return JSONArray.toJSONString(sysAttachmentService.findPage(pageSize,pageNum,"id,name,createTime",
-                    searchKey.equals("")?"":"where name like '%"+searchKey+"%' or type like '%"+searchKey+"%' "));
+            String filter = " where 1=1 ";
+            if(!searchKey.equals("")){
+                filter = filter+" and name like '%"+searchKey+"%' ";
+            }
+            if(!type.equals("") && (type.equals("图片") || type.equals("附件"))){
+                filter = filter + " and type='"+type+"'";
+            }
+            filter = filter + " order by createTime DESC";
+            return JSONArray.toJSONString(sysAttachmentService.findPage(pageSize,pageNum,"id,name,size,createTime",filter));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             return ResponseTem.errorTem("").toJSONString();
         }
-    }
-
-    @RequestMapping("uploadAttach")
-    public String uploadAttach(MultipartFile file){
-        return "";
     }
 
     @RequestMapping("download")
@@ -125,10 +145,16 @@ public class SysUploadCtrl extends BaseCtrl{
         }
     }
 
-    private Boolean fileType(MultipartFile file){
+    private Boolean fileType(MultipartFile file,String type){
         String imgReg = ".+\\.(jpg|jpeg|png|gif|bmp)$";
-        String fileReg = ".+\\.(doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar|xml)$";
-        return true;
+        String fileReg = ".+\\.(doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar|pdf)$";
+        if(type.equals(UploadType.Img.getName())){
+            return file.getOriginalFilename().matches(imgReg);
+        }else if(type.equals(UploadType.Attach.getName())){
+            return file.getOriginalFilename().matches(fileReg);
+        }else{
+            return false;
+        }
     }
 
 }

@@ -3,9 +3,7 @@ package zkl.service;
 import org.springframework.web.multipart.MultipartFile;
 import zkl.common.service.BaseService;
 import zkl.entity.SysAttachment;
-import zkl.entity.SysUser;
 
-import java.io.BufferedInputStream;
 import java.sql.SQLException;
 
 /**
@@ -14,11 +12,11 @@ import java.sql.SQLException;
 public interface SysAttachmentService extends BaseService<SysAttachment>{
 
     //保存文件
-    public SysAttachment doSavePath(MultipartFile file) throws NoSuchFieldException, SQLException;
+    public SysAttachment doSavePath(MultipartFile file, String type) throws NoSuchFieldException, SQLException;
 
     //下载路径
     public String downPath();
 
     //删除文件
-    public Boolean doDeleteFile(Integer id) throws IllegalAccessException;
+    public Boolean doDeleteFile(Object id) throws IllegalAccessException;
 }
