@@ -16,7 +16,6 @@ import zkl.web.BaseCtrl;
 
 import java.io.*;
 import java.net.URLEncoder;
-import java.sql.SQLException;
 
 /**
  * Created by Administrator on 2018/1/21.
@@ -32,16 +31,14 @@ public class SysUploadCtrl extends BaseCtrl{
     public String uploadImg(MultipartFile file){
         //List<MultipartFile> fileList = ((MultipartHttpServletRequest)request).getFiles("file");
         try {
-            System.out.println(file.getName());
             if(fileType(file,UploadType.Img.getName())){
                 sysAttachmentService.doSavePath(file,UploadType.Img.getName());
             }else{
                 return ResponseTem.errorTem("上传格式错误").toString();
             }
-        } catch (NoSuchFieldException e) {
+        }catch (Exception e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return ResponseTem.errorTem("上传失败").toString();
         }
         return ResponseTem.successTem();
     }
@@ -54,10 +51,9 @@ public class SysUploadCtrl extends BaseCtrl{
             }else{
                 return ResponseTem.errorTem("上传格式错误").toString();
             }
-        } catch (NoSuchFieldException e) {
+        }catch (Exception e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return ResponseTem.errorTem("上传失败").toString();
         }
         return ResponseTem.successTem();
     }
