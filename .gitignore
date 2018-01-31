@@ -26,3 +26,5 @@ myIviewTemAdm/
 logs
 *.logs
 upload
+logs/logs.logs
+src/main/java/zkl/config/UploadConfig.java

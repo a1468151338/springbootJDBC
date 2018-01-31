@@ -14,7 +14,7 @@ public class UploadConfig {
     @Bean
     MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setLocation("H:\\springbootJDBC\\");
+        factory.setLocation("G:\\springbootJDBC\\target\\");
         //factory.setLocation("G:\\springbootJDBC\\target\\");
         factory.setMaxFileSize(1024*1024*50);
         return factory.createMultipartConfig();
