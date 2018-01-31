@@ -23,4 +23,10 @@ public interface SysRoleService extends BaseService<SysRole>{
      * @param roleid
      */
     public void saveUserRole(Integer userid,Object[] roleid);
+
+	/**
+	 * 资源对应角色
+	 * @return
+	 */
+	public List<SysRole> roleByResourceId(Integer resourceId) throws IllegalAccessException;
 }

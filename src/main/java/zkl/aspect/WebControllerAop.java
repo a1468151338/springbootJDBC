@@ -1,27 +1,28 @@
 package zkl.aspect;
 
-import com.alibaba.fastjson.JSON;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.*;
-import org.springframework.beans.NullValueInNestedPathException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import zkl.common.util.LogUtils;
 import zkl.common.util.ReflectUtils;
+import zkl.entity.SysResource;
+import zkl.entity.SysRole;
+import zkl.service.SysResourceService;
+import zkl.service.SysRoleService;
 import zkl.util.ResponseTem;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/12/28.
@@ -30,6 +31,12 @@ import java.util.Map;
 @Order(1)
 @Aspect
 public class WebControllerAop {
+
+	@Autowired
+	SysResourceService sysResourceService;
+
+	@Autowired
+	SysRoleService sysRoleService;
 
     /**
      * 前置通知，方法调用前被调用
@@ -149,7 +156,7 @@ public class WebControllerAop {
         HttpSession session = (HttpSession) requestAttributes.resolveReference(RequestAttributes.REFERENCE_SESSION);
         try {
             //不是去登录的都要获取token
-            if (!signature.getName().equals("doLogin") && !signature.getName().equals("download")){
+            if (!signature.getName().equals("doLogin")){
                 String token = request.getHeader("token");
                 String userid = StringUtils.isEmpty(token)?"":request.getSession().getAttribute(token)==null?"":request.getSession().getAttribute(token).toString();
                 if (!StringUtils.isEmpty(token)  && !StringUtils.isEmpty(userid)){
@@ -159,6 +166,40 @@ public class WebControllerAop {
                     //根据token获取userId
                     Field userIdField = clazz.getField("userId");
                     ReflectUtils.doSetField(userIdField,object,new Integer(userid));
+
+					//是否有访问权限
+					String uri = request.getRequestURI();
+					//主要的不需要权限
+					if(!uri.startsWith("/api/sys/main/")){
+						AntPathMatcher antPathMatcher = new AntPathMatcher();
+						List<SysResource> sysResourceServices = sysResourceService.findByFilter(" order by urlPattern ASC");
+						Boolean hasPermission = false;
+						for(SysResource sysResource : sysResourceServices){
+							//路径匹配到，判断权限
+							if(antPathMatcher.match(sysResource.getUrlPattern(),uri)){
+								List<SysRole> roleList = sysRoleService.roleByResourceId(sysResource.getId());
+								List<SysRole> userRoleList = sysRoleService.findRoleListByUserId(new Integer(userid));
+								for(SysRole sysRole : roleList){
+									Integer roleId = sysRole.getId();
+									for(SysRole userRole : userRoleList){
+										if(userRole.getId()==roleId){
+											hasPermission=true;
+											break;
+										}
+									}
+									if(hasPermission){
+										break;
+									}
+								}
+								if(hasPermission){
+									break;
+								}
+							}
+						}
+						if(!hasPermission){
+							return ResponseTem.noPermissions();
+						}
+					}
                 }else{
                     //没有登录
                     return ResponseTem.noLogin();

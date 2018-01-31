@@ -30,4 +30,5 @@ public interface SysResourceService extends BaseService<SysResource>{
      * @param ids
      */
     public void move(Object[] ids,Integer parentId);
+
 }

@@ -11,6 +11,7 @@ public class SysResource extends BaseEntity{
     private String name;
     private Integer parentId;
     private String path;
+	private String urlPattern;//路径匹配，判断访问资源权限
     private String icon;
     private Integer sort;
 
@@ -22,7 +23,15 @@ public class SysResource extends BaseEntity{
         this.sort = sort;
     }
 
-    public Integer getId() {
+	public String getUrlPattern() {
+		return urlPattern;
+	}
+
+	public void setUrlPattern(String urlPattern) {
+		this.urlPattern = urlPattern;
+	}
+
+	public Integer getId() {
         return id;
     }
 

@@ -1,5 +1,6 @@
 package zkl.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import zkl.common.service.BaseServiceImpl;
 import zkl.dao.SysResourceDao;
 import zkl.entity.SysResource;
+import zkl.entity.SysRole;
 import zkl.service.SysResourceService;
 
 import java.sql.PreparedStatement;
