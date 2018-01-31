@@ -49,6 +49,6 @@ public class SysRoleServiceImpl extends BaseServiceImpl<SysRole> implements SysR
 
 	@Override
 	public List<SysRole> roleByResourceId(Integer resourceId) throws IllegalAccessException {
-		return sysRoleDao.queryForListByME("SELECT r.id FROM sys_role r,sys_role_resource rr WHERE rr.resiyrceud=? AND r.id=rr.roleid",new Object[]{resourceId});
+		return sysRoleDao.queryForListByME("SELECT r.id  FROM sys_role r,sys_role_resource rr WHERE rr.resourceid=? AND r.id=rr.roleid",new Object[]{resourceId});
 	}
 }

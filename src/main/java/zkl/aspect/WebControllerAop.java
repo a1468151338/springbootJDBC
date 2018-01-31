@@ -179,7 +179,16 @@ public class WebControllerAop {
 							if(antPathMatcher.match(sysResource.getUrlPattern(),uri)){
 								List<SysRole> roleList = sysRoleService.roleByResourceId(sysResource.getId());
 								List<SysRole> userRoleList = sysRoleService.findRoleListByUserId(new Integer(userid));
+								for(SysRole sysRole : userRoleList){
+									if("超级管理员".equals(sysRole.getName())){
+										hasPermission=true;
+										break;
+									}
+								}
 								for(SysRole sysRole : roleList){
+									if(hasPermission){
+										break;
+									}
 									Integer roleId = sysRole.getId();
 									for(SysRole userRole : userRoleList){
 										if(userRole.getId()==roleId){
@@ -187,13 +196,8 @@ public class WebControllerAop {
 											break;
 										}
 									}
-									if(hasPermission){
-										break;
-									}
 								}
-								if(hasPermission){
-									break;
-								}
+								break;
 							}
 						}
 						if(!hasPermission){
